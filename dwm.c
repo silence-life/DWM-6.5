@@ -228,6 +228,7 @@ static void resizemouse(const Arg *arg);
 static void resizerequest(XEvent *e);
 static void restack(Monitor *m);
 static void run(void);
+static void runautostart(void);
 static void scan(void);
 static void scratchpad_hide ();
 static _Bool scratchpad_last_showed_is_killed (void);
@@ -1750,6 +1751,11 @@ run(void)
 }
 
 void
+runautostart(void) {
+       system("cd ~/.dwm; ./autostart.sh&");
+}
+
+void
 scan(void)
 {
 	unsigned int i, num;
@@ -2931,6 +2937,7 @@ main(int argc, char *argv[])
 		die("pledge");
 #endif /* __OpenBSD__ */
 	scan();
+    runautostart();
 	run();
 	cleanup();
 	XCloseDisplay(dpy);
