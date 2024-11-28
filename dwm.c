@@ -1659,6 +1659,7 @@ static void scratchpad_show_client (Client * c)
 	scratchpad_last_showed = c;
 	c -> tags = selmon->tagset[selmon->seltags];
 	focus(c);
+	pop(c);
 	arrange(selmon);
 }
 
