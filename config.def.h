@@ -63,6 +63,8 @@ static const char *termcmd[]  = { "terminal", NULL };
 
 static const Key keys[] = {
 	/* modifier                     key                      function        argument */
+    { MODKEY,                       XK_u,                    scratchpad_hide, {0} },   /*  hide and unhide  */
+    { MODKEY,                       XK_o,                    scratchpad_show, {0} },
     { MODKEY,                       XK_l,                    shiftview,      {.i = +1 } },
     { MODKEY,                       XK_j,                    shiftview,      {.i = -1 } },
     { MODKEY,                       XK_Right,                shiftview,      {.i = +1 } },
