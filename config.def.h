@@ -28,7 +28,7 @@ static const char *colors[][3]      = {
 };
 
 /* tagging */
-static const char *tags[] = { "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+static const char *tags[] = { "1", "2", "3", "4", "5", "6", "7", "8", "9", "\\" };
 
 static const Rule rules[] = {
 	/* xprop(1):
@@ -46,12 +46,13 @@ static const int nmaster     = 1;    /* number of clients in master area */
 static const int resizehints = 0;    /* 1 means respect size hints in tiled resizals */
 static const int lockfullscreen = 1; /* 1 will force focus on the fullscreen window */
 
-static const Layout overviewlayout = { "",  overview };
+static const Layout overviewlayout = { "田", overview };
 static const Layout layouts[] = {
 	/* symbol     arrange function */
-	{ "[]=",      tile },    /* first entry is default */
-	{ "><>",      NULL },    /* no layout function means floating behavior */
+	{ "[]=",      vtile },   // first entry is default
+//	{ "><>",      NULL },    // no layout function means floating behavior
 	{ "[M]",      monocle },
+    { "品",       htile },
 };
 
 /* key definitions */
@@ -72,9 +73,9 @@ static const char *termcmd[]  = { "terminal", NULL };
 
 static const Key keys[] = {
 //	  modifier                      key                      function            argument
-    { MODKEY,                       XK_a,                    toggleoverview,     {0} },   // super a  |  显示所有tag 或 跳转到聚焦窗口的tag
+    { MODKEY,                       XK_a,                    toggleoverview,     {0} },   //toggle overview layout or go to tag which own focus window
     { MODKEY,                       XK_n,                    newempty,           {0} },
-    { MODKEY,                       XK_u,                    scratchpad_hide,    {0} },   //  hide and unhide
+    { MODKEY,                       XK_u,                    scratchpad_hide,    {0} },   //  hide or unhide
     { MODKEY,                       XK_o,                    scratchpad_show,    {0} },
     { MODKEY,                       XK_l,                    shiftview,          {.i = +1 } },
     { MODKEY,                       XK_j,                    shiftview,          {.i = -1 } },
@@ -96,9 +97,9 @@ static const Key keys[] = {
 	{ MODKEY,                       XK_Return,               zoom,               {0} },
 	{ MODKEY,                       XK_Tab,                  view,               {0} },
 	{ MODKEY|ShiftMask,             XK_c,                    killclient,         {0} },
-	{ MODKEY,                       XK_t,                    setlayout,          {.v = &layouts[0]} },
-	{ MODKEY,                       XK_f,                    setlayout,          {.v = &layouts[1]} },
-	{ MODKEY,                       XK_m,                    setlayout,          {.v = &layouts[2]} },
+    { MODKEY,                       XK_t,                    setlayout,          {.v = &layouts[0]} },  //  cycle in htile and vtile layout
+    { MODKEY,                       XK_f,                    setlayout,          {.v = &layouts[1]} },  // cycle in monocle and previous layout
+    { MODKEY|ShiftMask,             XK_f,                    togglefullscr,      {0} },
 	{ MODKEY,                       XK_space,                setlayout,          {0} },
 	{ MODKEY|ShiftMask,             XK_space,                togglefloating,     {0} },
 	{ MODKEY,                       XK_0,                    view,               {.ui = ~0 } },
@@ -118,7 +119,8 @@ static const Key keys[] = {
     TAGKEYS(                        XK_6,                                5,0)
     TAGKEYS(                        XK_7,                                6,0)
     TAGKEYS(                        XK_8,                                7,0)
-    TAGKEYS(                        XK_9,                                8,"st ranger")
+    TAGKEYS(                        XK_9,                                8,0)
+    TAGKEYS(                        XK_backslash,                        9,"st ranger")
 	{ MODKEY|ShiftMask,             XK_F12,                  quit,               {0} },
 };
 
