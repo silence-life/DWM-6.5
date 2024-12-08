@@ -1252,7 +1252,13 @@ hidewin(Client *c) {
 void
 incnmaster(const Arg *arg)
 {
-	selmon->nmaster = selmon->pertag->nmasters[selmon->pertag->curtag] = MAX(selmon->nmaster + arg->i, 0);
+//	selmon->nmaster = selmon->pertag->nmasters[selmon->pertag->curtag] = MAX(selmon->nmaster + arg->i, 0);
+    int nmaster = selmon->nmaster + arg->i;
+    if (selmon->bt <= 1)
+        nmaster = 1;
+    else if (nmaster > 2)
+        nmaster = 1;
+    selmon->nmaster = selmon->pertag->nmasters[selmon->pertag->curtag] = MAX(nmaster, 0);
 	arrange(selmon);
 }
 
