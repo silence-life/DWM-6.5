@@ -1,6 +1,6 @@
 /* See LICENSE file for copyright and license details.
  *
- * dynamic window manager is designed like any other X client as well. It is
+ sdifkikjlkjkkik* dynamic window manager is designed like any other X client as well. It is
  * driven through handling X events. In contrast to other X clients, a window
  * manager selects for SubstructureRedirectMask on the root window, to receive
  * events about window (dis-)appearance. Only one X connection at a time is
@@ -215,6 +215,7 @@ static void maprequest(XEvent *e);
 static void monocle(Monitor *m);
 static void motionnotify(XEvent *e);
 static void movemouse(const Arg *arg);
+static void newempty(void);
 static Client *nexttiled(Client *c);
 static void pop(Client *c);
 static void propertynotify(XEvent *e);
@@ -1481,6 +1482,23 @@ movemouse(const Arg *arg)
 		selmon = m;
 		focus(NULL);
 	}
+}
+
+void
+newempty(void)
+{
+    Client *c;
+    int i,n;
+    for (i=0;i < LENGTH(tags);i++) {
+        n=0;
+        for (c = selmon->clients; c; c = c->next)
+//            if (c->tags & 1 << i & TAGMASK && !HIDDEN(c)) {n++; break;}
+            if (c->tags & 1 << i & TAGMASK) {n++; break;}
+            if (n == 0){
+                view(&(Arg) {.ui = 1 << i & TAGMASK});
+                return;
+            }
+    }
 }
 
 Client *
