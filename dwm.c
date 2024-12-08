@@ -2807,8 +2807,15 @@ view(const Arg *arg)
 	int i;
 	unsigned int tmptag;
 
-	if ((arg->ui & TAGMASK) == selmon->tagset[selmon->seltags])
-		return;
+    if ((arg->ui & TAGMASK) == selmon->tagset[selmon->seltags]) {
+            if (arg->ui == ~0) {
+                    selmon->seltags ^= 1; /* toggle sel tagset */
+                    uint target = selmon->sel ? selmon->sel->tags : selmon->tagset[selmon->seltags];
+                    selmon->tagset[selmon->seltags] = target & TAGMASK;
+    }
+       else { return; }
+    }
+    else {
 	selmon->seltags ^= 1; /* toggle sel tagset */
 	if (arg->ui & TAGMASK) {
 		selmon->tagset[selmon->seltags] = arg->ui & TAGMASK;
@@ -2824,6 +2831,7 @@ view(const Arg *arg)
 		tmptag = selmon->pertag->prevtag;
 		selmon->pertag->prevtag = selmon->pertag->curtag;
 		selmon->pertag->curtag = tmptag;
+    }
 	}
 
 	selmon->nmaster = selmon->pertag->nmasters[selmon->pertag->curtag];
