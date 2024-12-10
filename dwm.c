@@ -1,6 +1,6 @@
 /* See LICENSE file for copyright and license details.
  *
- sdifkikjlkjkkik* dynamic window manager is designed like any other X client as well. It is
+ * dynamic window manager is designed like any other X client as well. It is
  * driven through handling X events. In contrast to other X clients, a window
  * manager selects for SubstructureRedirectMask on the root window, to receive
  * events about window (dis-)appearance. Only one X connection at a time is
@@ -217,7 +217,7 @@ static void maprequest(XEvent *e);
 static void monocle(Monitor *m);
 static void motionnotify(XEvent *e);
 static void movemouse(const Arg *arg);
-static void newempty(void);
+static void newempty(const Arg *arg);
 static Client *nexttiled(Client *c);
 static void overview(Monitor *m);
 static void pointerfocuswin(Client *c);
@@ -474,11 +474,11 @@ arrangemon(Monitor *m)
         strncpy(m->ltsymbol, overviewlayout.symbol, sizeof m->ltsymbol);
         overviewlayout.arrange(m);
     }
-       else {
+	else {
 	strncpy(m->ltsymbol, m->lt[m->sellt]->symbol, sizeof m->ltsymbol);
 	if (m->lt[m->sellt]->arrange)
 		m->lt[m->sellt]->arrange(m);
-       }
+	}
 }
 
 void
@@ -904,23 +904,17 @@ drawbar(Monitor *m)
 			urg |= c->tags;
 	}
 	x = 0;
-    if (m->isoverview) {
-        w = TEXTW("OVERVIEW");
-        drw_setscheme(drw, scheme[SchemeSel]);
-        drw_text(drw, x, 0, w, bh, lrpad / 2, "OVERVIEW", 0);
-        drw_setscheme(drw, scheme[SchemeNorm]);
-        x += w;
-    }
-       else {
-               for (i = 0; i < LENGTH(tags); i++) {
-                       /* Do not draw vacant tags */
-                       if(!(occ & 1 << i || m->tagset[m->seltags] & 1 << i))
-                               continue;
-                       w = TEXTW(tags[i]);
-                       drw_setscheme(drw, scheme[m->tagset[m->seltags] & 1 << i ? SchemeSel : SchemeNorm]);
-                       drw_text(drw, x, 0, w, bh, lrpad / 2, tags[i], urg & 1 << i);
-                       x += w;
-               }
+	for (i = 0; i < LENGTH(tags); i++) {
+		/* Do not draw vacant tags */
+		if(!(occ & 1 << i || m->tagset[m->seltags] & 1 << i))
+			continue;
+		w = TEXTW(tags[i]);
+		if (m->isoverview)
+			drw_setscheme(drw, scheme[SchemeSel]);
+		else
+			drw_setscheme(drw, scheme[m->tagset[m->seltags] & 1 << i ? SchemeSel : SchemeNorm]);
+		drw_text(drw, x, 0, w, bh, lrpad / 2, tags[i], urg & 1 << i);
+		x += w;
 	}
 	w = TEXTW(m->ltsymbol);
 	drw_setscheme(drw, scheme[SchemeNorm]);
@@ -1288,13 +1282,13 @@ grid(Monitor *m, uint gappo, uint gappi)
         if (cols * cols >= n)
             break;
     rows = (cols && (cols - 1) * cols >= n) ? cols - 1 : cols;
-       ch = (m->wh - 2 * gappo - (rows - 1) * gappi) / rows;
-       cw = (m->ww - 2 * gappo - (cols - 1) * gappi) / cols;
+	ch = (m->wh - 2 * gappo - (rows - 1) * gappi) / rows;
+	cw = (m->ww - 2 * gappo - (cols - 1) * gappi) / cols;
 
     overcols = n % cols;
-       if (overcols)
+	if (overcols)
         dx = (m->ww - overcols * cw - (overcols - 1) * gappi) / 2 - gappo;
-       for(i = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), i++) {
+	for(i = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), i++) {
         cx = m->wx + (i % cols) * (cw + gappi);
         cy = m->wy + (i / cols) * (ch + gappi);
         if (overcols && i >= n - overcols) {
@@ -1306,7 +1300,7 @@ grid(Monitor *m, uint gappo, uint gappi)
                cw - 2 * c->bw,
                ch - 2 * c->bw,
                0);
-       }
+	}
 }
 
 void
@@ -1342,13 +1336,12 @@ hidewin(Client *c) {
 void
 incnmaster(const Arg *arg)
 {
-//	selmon->nmaster = selmon->pertag->nmasters[selmon->pertag->curtag] = MAX(selmon->nmaster + arg->i, 0);
     int nmaster = selmon->nmaster + arg->i;
     if (selmon->bt <= 1)
         nmaster = 1;
-    else if (nmaster > 2)
+	else if (nmaster > 2)
         nmaster = 1;
-    selmon->nmaster = selmon->pertag->nmasters[selmon->pertag->curtag] = MAX(nmaster, 0);
+	selmon->nmaster = selmon->pertag->nmasters[selmon->pertag->curtag] = MAX(nmaster, 0);
 	arrange(selmon);
 }
 
@@ -1395,12 +1388,12 @@ killclient(const Arg *arg)
 		XSetErrorHandler(xerror);
 		XUngrabServer(dpy);
 	}
-    if (selmon->bt < 2) {
-        if (selmon->lt[selmon->sellt] == &layouts[0])
-            return;
-        else
-            setlayout(&((Arg) { .v = &layouts[0] }));
-    }
+	if (selmon->bt < 2) {
+		if (selmon->lt[selmon->sellt] == &layouts[0])
+			return;
+		else
+			setlayout(&((Arg) { .v = &layouts[0] }));
+	}
 }
 
 void
@@ -1586,21 +1579,45 @@ movemouse(const Arg *arg)
 	}
 }
 
+/*
 void
-newempty(void)
+newempty(const Arg *arg)
 {
-    Client *c;
-    int i,n;
-    for (i=0;i < LENGTH(tags);i++) {
-        n=0;
-        for (c = selmon->clients; c; c = c->next)
-//            if (c->tags & 1 << i & TAGMASK && !HIDDEN(c)) {n++; break;}
-            if (c->tags & 1 << i & TAGMASK) {n++; break;}
-            if (n == 0){
-                view(&(Arg) {.ui = 1 << i & TAGMASK});
-                return;
-            }
-    }
+	Client *c;
+	int i;
+	int n;
+	for (i=0;i<LENGTH(tags);i++) {
+		n = 0;
+		for (c = selmon->clients; c; c = c->next)
+			//if (c->tags & 1 << i & TAGMASK && !HIDDEN(c)) {n++; break;}
+			if (c->tags & 1 << i & TAGMASK) {
+				n++;
+				break;
+			}
+		if ( n == 0 ) {
+			view(&(Arg) {.ui = 1 << i & TAGMASK});
+			return;
+		}
+	}
+}
+*/
+
+void
+newempty(const Arg *arg)
+{
+	Client *c;
+	unsigned int tmptag = 0;
+	int i;
+
+    for (c = selmon->clients; c; c = c->next)
+		tmptag |= c->tags;
+	for (i=0;i<LENGTH(tags);i++) {
+		if (!(tmptag>>i & 1)) {
+			view(&(Arg) {.ui = 1<<i & TAGMASK});
+			return;
+		}
+	}
+	return;
 }
 
 Client *
@@ -1888,7 +1905,7 @@ run(void)
 
 void
 runautostart(void) {
-       system("cd ~/.dwm; ./autostart.sh&");
+	system("cd ~/.dwm; ./autostart.sh&");
 }
 
 void
@@ -1920,9 +1937,9 @@ scan(void)
 
 static void scratchpad_hide ()
 {
-    if (selmon -> sel && scratchpad_last_showed != NULL && selmon -> sel == scratchpad_last_showed)
-            scratchpad_last_showed = NULL;
-    else if (selmon -> sel)
+	if (selmon -> sel && scratchpad_last_showed != NULL && selmon -> sel == scratchpad_last_showed)
+		scratchpad_last_showed = NULL;
+	else if (selmon -> sel)
 	{
 		selmon -> sel -> tags = SCRATCHPAD_MASK;
 		selmon -> sel -> isfloating = 0;
@@ -1944,7 +1961,6 @@ static _Bool scratchpad_last_showed_is_killed (void)
 	}
 	return killed;
 }
-
 /*
 static void scratchpad_remove ()
 {
@@ -1952,7 +1968,6 @@ static void scratchpad_remove ()
 		scratchpad_last_showed = NULL;
 }
 */
-
 static void scratchpad_show ()
 {
 	if (scratchpad_last_showed == NULL || scratchpad_last_showed_is_killed ())
@@ -2119,16 +2134,16 @@ setfullscreen(Client *c, int fullscreen)
 void
 setlayout(const Arg *arg)
 {
-    if (arg->v != selmon->lt[selmon->sellt]) {
+	if (arg->v != selmon->lt[selmon->sellt]) {
 		selmon->sellt = selmon->pertag->sellts[selmon->pertag->curtag] ^= 1;
 		selmon->lt[selmon->sellt] = selmon->pertag->ltidxs[selmon->pertag->curtag][selmon->sellt] = (Layout *)arg->v;
-    }
-    else if (selmon->lt[selmon->sellt] == &layouts[0])
-            selmon->lt[selmon->sellt] = selmon->pertag->ltidxs[selmon->pertag->curtag][selmon->sellt] = (Layout *)&layouts[2];
-    else if (selmon->lt[selmon->sellt] == &layouts[1])
-            selmon->sellt = selmon->pertag->sellts[selmon->pertag->curtag] ^= 1;
-    else
-            return;
+	}
+	else if (selmon->lt[selmon->sellt] == &layouts[0])
+		selmon->lt[selmon->sellt] = selmon->pertag->ltidxs[selmon->pertag->curtag][selmon->sellt] = (Layout *)&layouts[2];
+	else if (selmon->lt[selmon->sellt] == &layouts[1])
+		selmon->sellt = selmon->pertag->sellts[selmon->pertag->curtag] ^= 1;
+	else
+		return;
 	strncpy(selmon->ltsymbol, selmon->lt[selmon->sellt]->symbol, sizeof selmon->ltsymbol);
 	if (selmon->sel)
 		arrange(selmon);
@@ -2311,21 +2326,21 @@ shiftview(const Arg *arg) {
    int k;
    Client *c = selmon->clients;
 
-   if(arg->i > 0) /* left circular shift */
-          for (k=1;k<LENGTH(tags);k++)
-   {        shifted.ui = (selmon->tagset[selmon->seltags] << k)
-          | (selmon->tagset[selmon->seltags] >> (LENGTH(tags) - k));
-        for (c = selmon->clients; c; c = c->next)
-            if (c->tags & shifted.ui) {view(&shifted); return;}
-   }
+	if(arg->i > 0) /* left circular shift */
+		for (k=1;k<LENGTH(tags);k++) {
+			shifted.ui = (selmon->tagset[selmon->seltags] << k)
+			| (selmon->tagset[selmon->seltags] >> (LENGTH(tags) - k));
+			for (c = selmon->clients; c; c = c->next)
+				if (c->tags & shifted.ui) { view(&shifted); return; }
+		}
 
-   else /* right circular shift */
-          for (k=1;k<LENGTH(tags);k++)
-   {       shifted.ui = selmon->tagset[selmon->seltags] >> k
-          | selmon->tagset[selmon->seltags] << (LENGTH(tags) - k);
-        for (c = selmon->clients; c; c = c->next)
-            if (c->tags & shifted.ui) {view(&shifted); return;}
-   }
+	else /* right circular shift */
+		for (k=1;k<LENGTH(tags);k++) {
+			shifted.ui = selmon->tagset[selmon->seltags] >> k
+			| selmon->tagset[selmon->seltags] << (LENGTH(tags) - k);
+			for (c = selmon->clients; c; c = c->next)
+				if (c->tags & shifted.ui) { view(&shifted); return; }
+		}
 }
 
 void
@@ -2399,29 +2414,30 @@ vtile(Monitor *m)
 void
 htile(Monitor *m)
 {
-       unsigned int i, n, w, mh, mx, tx;
-       Client *c;
+	unsigned int i, n, w, mh, mx, tx;
+	Client *c;
 
-       for (n = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), n++);
-       if (n == 0)
-               return;
+	for (n = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), n++);
+		if (n == 0)
+			return;
 
-       if (n > m->nmaster)
-               mh = m->nmaster ? m->wh * m->mfact : 0;
-       else
-               mh = m->wh;
-       for (i = mx = tx = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), i++)
-               if (i < m->nmaster) {
-                       w = (m->ww - mx) / (MIN(n, m->nmaster) - i);
-                       resize(c, m->wx + mx, m->wy, w - (2*c->bw), mh - (2*c->bw) + (n > 1 ? gappx : 0), 0);
-                       if (mx + WIDTH(c) < m->ww)
-                               mx += WIDTH(c);
-               } else {
-                       w = (m->ww - tx) / (n - i);
-                       resize(c, m->wx + tx, m->wy + mh, w - (2*c->bw), m->wh - mh - (2*c->bw), 0);
-                       if (tx + WIDTH(c) < m->ww)
-                               tx += WIDTH(c);
-               }
+	if (n > m->nmaster)
+		mh = m->nmaster ? m->wh * m->mfact : 0;
+	else
+		mh = m->wh;
+	for (i = mx = tx = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), i++)
+		if (i < m->nmaster) {
+			w = (m->ww - mx) / (MIN(n, m->nmaster) - i);
+			resize(c, m->wx + mx, m->wy, w - (2*c->bw), mh - (2*c->bw) + (n > 1 ? gappx : 0), 0);
+			if (mx + WIDTH(c) < m->ww)
+				mx += WIDTH(c);
+		}
+		else {
+			w = (m->ww - tx) / (n - i);
+			resize(c, m->wx + tx, m->wy + mh, w - (2*c->bw), m->wh - mh - (2*c->bw), 0);
+			if (tx + WIDTH(c) < m->ww)
+				tx += WIDTH(c);
+		}
 }
 
 void
@@ -2471,7 +2487,7 @@ toggleoverview(const Arg *arg)
     if (selmon->sel && selmon->sel->isfullscreen) /* no support for fullscreen windows */
         return;
 
-//     view(&(Arg){ .ui = ~0 });
+//	view(&(Arg){ .ui = ~0 });
 
     uint target = selmon->sel ? selmon->sel->tags : selmon->seltags;
     selmon->isoverview ^= 1;
@@ -2534,7 +2550,8 @@ void
 togglewin(const Arg *arg)
 {
 	Client *c = (Client*)arg->v;
-
+	if (c == NULL)
+		return;
 	if (c == selmon->sel) {
 		hidewin(c);
 		focus(NULL);
@@ -2542,12 +2559,12 @@ togglewin(const Arg *arg)
 	} else {
 		if (HIDDEN(c))
 			showwin(c);
-        if (selmon->lt[selmon->sellt] == &layouts[0] && !selmon->isoverview)
-                pop(c);
-        else {
-                focus(c);
-                restack(selmon);
-             }
+		if (selmon->lt[selmon->sellt] == &layouts[0] && !selmon->isoverview)
+			pop(c);
+		else {
+			focus(c);
+			restack(selmon);
+        }
 	}
 }
 
@@ -2976,37 +2993,53 @@ void
 view(const Arg *arg)
 {
 	int i;
-	unsigned int tmptag;
-    int n=0;
-    Client *c;
+	unsigned int tmptag = 0;
+	Client *c;
 
-    if ((arg->ui & TAGMASK) == selmon->tagset[selmon->seltags]) {
-            if (arg->ui == ~0) {
-                    selmon->seltags ^= 1; /* toggle sel tagset */
-                    uint target = selmon->sel ? selmon->sel->tags : selmon->tagset[selmon->seltags];
-                    selmon->tagset[selmon->seltags] = target & TAGMASK;
-    }
-//       else { return; }
+    if ((arg->ui) == ~0) {
+        for (c = selmon->clients; c; c = c->next)
+            tmptag |= c->tags;
+        if ((tmptag & TAGMASK) == selmon->tagset[selmon->seltags]) {
+            selmon->seltags ^= 1; /* toggle sel tagset */
+            uint target = selmon->sel ? selmon->sel->tags : selmon->tagset[selmon->seltags];
+            selmon->tagset[selmon->seltags] = target & TAGMASK;
+        }
+        else {
+            selmon->seltags ^= 1; /* toggle sel tagset */
+            selmon->tagset[selmon->seltags] = tmptag & TAGMASK;
+            selmon->pertag->prevtag = selmon->pertag->curtag;
+            selmon->pertag->curtag = 0;
+        }
     }
     else {
-	selmon->seltags ^= 1; /* toggle sel tagset */
-	if (arg->ui & TAGMASK) {
-		selmon->tagset[selmon->seltags] = arg->ui & TAGMASK;
-		selmon->pertag->prevtag = selmon->pertag->curtag;
-
-		if (arg->ui == ~0)
-			selmon->pertag->curtag = 0;
-		else {
-			for (i = 0; !(arg->ui & 1 << i); i++) ;
-			selmon->pertag->curtag = i + 1;
+        if ((arg->ui & TAGMASK) == selmon->tagset[selmon->seltags]) {
+		    // 若当前tag无窗口 且附加了v参数 则执行
+		    if (arg->v) {
+		        for (c = selmon->clients; c; c = c->next)
+		            // if (c->tags & arg->ui && !HIDDEN(c))
+		            if (c->tags & arg->ui)
+		                return;
+				spawn(&(Arg){ .v = (const char*[]){ "/bin/sh", "-c", arg->v, NULL } });
+				return;
+		    }
+//			else
+//				return;
 		}
-	} else {
-		tmptag = selmon->pertag->prevtag;
-		selmon->pertag->prevtag = selmon->pertag->curtag;
-		selmon->pertag->curtag = tmptag;
+        else {
+            selmon->seltags ^= 1; /* toggle sel tagset */
+            if (arg->ui & TAGMASK) {
+                selmon->tagset[selmon->seltags] = arg->ui & TAGMASK;
+                selmon->pertag->prevtag = selmon->pertag->curtag;
+                for (i = 0; !(arg->ui & 1 << i); i++) ;
+                    selmon->pertag->curtag = i + 1;
+            }
+            else {
+                tmptag = selmon->pertag->prevtag;
+                selmon->pertag->prevtag = selmon->pertag->curtag;
+                selmon->pertag->curtag = tmptag;
+            }
+        }
     }
-	}
-
 	selmon->nmaster = selmon->pertag->nmasters[selmon->pertag->curtag];
 	selmon->mfact = selmon->pertag->mfacts[selmon->pertag->curtag];
 	selmon->sellt = selmon->pertag->sellts[selmon->pertag->curtag];
@@ -3018,14 +3051,14 @@ view(const Arg *arg)
 
 	focus(NULL);
 	arrange(selmon);
+
     // 若当前tag无窗口 且附加了v参数 则执行
     if (arg->v) {
         for (c = selmon->clients; c; c = c->next)
-            if (c->tags & arg->ui && !HIDDEN(c))
-                n++;
-        if (n == 0) {
+            // if (c->tags & arg->ui && !HIDDEN(c))
+            if (c->tags & arg->ui)
+                return;
             spawn(&(Arg){ .v = (const char*[]){ "/bin/sh", "-c", arg->v, NULL } });
-        }
     }
 }
 
@@ -3151,7 +3184,7 @@ main(int argc, char *argv[])
 		die("pledge");
 #endif /* __OpenBSD__ */
 	scan();
-    runautostart();
+	runautostart();
 	run();
 	cleanup();
 	XCloseDisplay(dpy);
