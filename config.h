@@ -51,9 +51,9 @@ static const Layout overviewlayout = { "田", overview };
 static const Layout layouts[] = {
 	/* symbol     arrange function */
 	{ "[]=",      vtile },   // first entry is default
-//	{ "><>",      NULL },    // no layout function means floating behavior
 	{ "[M]",      monocle },
     { "品",       htile },
+	{ "><>",      NULL },    // no layout function means floating behavior
 };
 
 /* key definitions */
@@ -144,8 +144,8 @@ static const Key keys[] = {
 /* click can be ClkTagBar, ClkLtSymbol, ClkStatusText, ClkWinTitle, ClkClientWin, or ClkRootWin */
 static const Button buttons[] = {
 	/* click                event mask      button          function        argument */
-//	{ ClkLtSymbol,          0,              Button1,        setlayout,      {0} },
-//	{ ClkLtSymbol,          0,              Button3,        setlayout,      {.v = &layouts[2]} },
+	{ ClkLtSymbol,          0,              Button1,        setlayout,      {.v = &layouts[3]} },
+	{ ClkLtSymbol,          0,              Button3,        setlayout,      {.v = &layouts[0]} },
 	{ ClkTagBar,            MODKEY,         Button1,        tag,            {0} },
 	{ ClkTagBar,            MODKEY,         Button3,        toggletag,      {0} },
 	{ ClkWinTitle,          0,              Button1,        togglewin,      {0} },

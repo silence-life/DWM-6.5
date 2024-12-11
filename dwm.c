@@ -196,7 +196,7 @@ static void focus(Client *c);
 static void focusin(XEvent *e);
 static void focusmon(const Arg *arg);
 static void focusstackvis(const Arg *arg);
-static void focusstackhid(const Arg *arg);
+//static void focusstackhid(const Arg *arg);
 static void focusstack(int inc, int vis);
 static Atom getatomprop(Client *c, Atom prop);
 static int getrootptr(int *x, int *y);
@@ -249,7 +249,7 @@ static void setlayout(const Arg *arg);
 static void setmfact(const Arg *arg);
 static void setup(void);
 static void seturgent(Client *c, int urg);
-static void show(const Arg *arg);
+//static void show(const Arg *arg);
 static void showall(const Arg *arg);
 static void showwin(Client *c);
 static void showhide(Client *c);
@@ -877,8 +877,8 @@ void
 drawbar(Monitor *m)
 {
 	int x, w, tw = 0, stw = 0, n = 0, scm;
-	int boxs = drw->fonts->h / 9;
-	int boxw = drw->fonts->h / 6 + 2;
+//	int boxs = drw->fonts->h / 9;
+//	int boxw = drw->fonts->h / 6 + 2;
 	unsigned int i, occ = 0, urg = 0;
 	Client *c;
 
@@ -1057,10 +1057,12 @@ focusstackvis(const Arg *arg) {
 	focusstack(arg->i, 0);
 }
 
+/*
 void
 focusstackhid(const Arg *arg) {
 	focusstack(arg->i, 1);
 }
+*/
 
 void
 focusstack(int inc, int hid)
@@ -1905,7 +1907,7 @@ run(void)
 
 void
 runautostart(void) {
-	system("cd ~/.dwm; ./autostart.sh&");
+	if (system("~/.dwm/autostart.sh&"));
 }
 
 void
@@ -2265,6 +2267,7 @@ seturgent(Client *c, int urg)
 	XFree(wmh);
 }
 
+/*
 void
 show(const Arg *arg)
 {
@@ -2272,6 +2275,7 @@ show(const Arg *arg)
 		selmon->hidsel = 0;
 	showwin(selmon->sel);
 }
+*/
 
 void
 showall(const Arg *arg)
@@ -2418,8 +2422,8 @@ htile(Monitor *m)
 	Client *c;
 
 	for (n = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), n++);
-		if (n == 0)
-			return;
+	if (n == 0)
+		return;
 
 	if (n > m->nmaster)
 		mh = m->nmaster ? m->wh * m->mfact : 0;
@@ -3017,8 +3021,8 @@ view(const Arg *arg)
 		    if (arg->v) {
 		        for (c = selmon->clients; c; c = c->next)
 		            // if (c->tags & arg->ui && !HIDDEN(c))
-		            if (c->tags & arg->ui)
-		                return;
+					if (c->tags & arg->ui)
+						return;
 				spawn(&(Arg){ .v = (const char*[]){ "/bin/sh", "-c", arg->v, NULL } });
 				return;
 		    }
@@ -3030,8 +3034,8 @@ view(const Arg *arg)
             if (arg->ui & TAGMASK) {
                 selmon->tagset[selmon->seltags] = arg->ui & TAGMASK;
                 selmon->pertag->prevtag = selmon->pertag->curtag;
-                for (i = 0; !(arg->ui & 1 << i); i++) ;
-                    selmon->pertag->curtag = i + 1;
+				for (i = 0; !(arg->ui & 1 << i); i++);
+				selmon->pertag->curtag = i + 1;
             }
             else {
                 tmptag = selmon->pertag->prevtag;
@@ -3058,7 +3062,7 @@ view(const Arg *arg)
             // if (c->tags & arg->ui && !HIDDEN(c))
             if (c->tags & arg->ui)
                 return;
-            spawn(&(Arg){ .v = (const char*[]){ "/bin/sh", "-c", arg->v, NULL } });
+        spawn(&(Arg){ .v = (const char*[]){ "/bin/sh", "-c", arg->v, NULL } });
     }
 }
 
